@@ -30,6 +30,7 @@ public class Robot extends TimedRobot {
   double xAxis;
   double yAxis;
   double zAxis;
+  double wAxis;
   static double DEADBAND = 0.1;
 
   // navX
@@ -51,6 +52,7 @@ public class Robot extends TimedRobot {
   SwervCorner cornerFR = new SwervCorner(2, 1, 9, 1, -1, 207.421875, 1);
   SwervCorner cornerBL = new SwervCorner(7, 8, 11, -1, 1, 289.86328125, -1);
   SwervCorner cornerBR = new SwervCorner(4, 3, 10, -1, -1, 91.2304688, 1);
+  Arm myArm = new Arm();
   private RobotContainer m_robotContainer;
 
   // public double getDegrees(double x, double y, double z, double zvecX, double zvecY) {
@@ -192,11 +194,20 @@ public class Robot extends TimedRobot {
     xAxis = controller.getRawAxis(0);
     yAxis = controller.getRawAxis(1) * -1;
     zAxis = controller.getRawAxis(4);
+    wAxis = controller.getRawAxis(3) - controller.getRawAxis(2);
 
     // Deadband
     if (Math.abs(xAxis) < DEADBAND) xAxis = 0;
     if (Math.abs(yAxis) < DEADBAND) yAxis = 0;
     if (Math.abs(zAxis) < DEADBAND) zAxis = 0;
+    if (Math.abs(wAxis) < DEADBAND) wAxis = 0;
+
+    myArm.moveArm(wAxis);
+    if (controller.getRawButton(4)){
+      myArm.Intake();
+    }else if (controller.getRawButton(5)){
+      myArm.Outtake();
+    }
 
     if(controller.getRawButton(2)){ // Auto Balance
       zAxis = 0;
