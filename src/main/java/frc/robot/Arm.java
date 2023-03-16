@@ -24,7 +24,8 @@ public class Arm {
         Fswitchlong= new DigitalInput(8);
         Bswitchlong= new DigitalInput(9);
         Fswitchshort= new DigitalInput(2);
-        Bswitchshort= new DigitalInput(3);
+        Bswitchshort= new DigitalInput(1);
+        LongArm = true;
     }
 
     public void switchArm(){
@@ -34,17 +35,19 @@ public class Arm {
     public void moveArm(double a){
         a = a * 0.15;
         if(LongArm){
-            if(a > 0 && !Fswitchlong.get()){
+            if(a > 0 && Fswitchlong.get()){
+                System.out.println("MoveOUt");
                 LongArmMotor.set(ControlMode.PercentOutput, a);
-            }else if(a < 0 && !Bswitchlong.get()){
+            }else if(a < 0 && Bswitchlong.get()){
+                System.out.println("MoveIn");
                 LongArmMotor.set(ControlMode.PercentOutput, a);
             }else{
                 LongArmMotor.set(ControlMode.PercentOutput, 0);
             }
         }else{
-            if(a > 0 && !Fswitchshort.get()){
+            if(a > 0 && Fswitchshort.get()){
                 ShortArmMotor.set(ControlMode.PercentOutput, a);
-            }else if(a < 0 && !Bswitchshort.get()){
+            }else if(a < 0 && Bswitchshort.get()){
                 ShortArmMotor.set(ControlMode.PercentOutput, a);
             }else{
                 ShortArmMotor.set(ControlMode.PercentOutput, 0);
@@ -65,6 +68,14 @@ public class Arm {
             LongIntake.set(ControlMode.PercentOutput, -0.5);
         }else{
             ShortIntake.set(ControlMode.PercentOutput, -0.5);
+        }
+    }
+
+    public void Stoptake(){
+        if(LongArm){
+            LongIntake.set(ControlMode.PercentOutput, 0);
+        }else{
+            ShortIntake.set(ControlMode.PercentOutput, 0);
         }
     }
 

@@ -203,12 +203,19 @@ public class Robot extends TimedRobot {
     if (Math.abs(wAxis) < DEADBAND) wAxis = 0;
 
     myArm.moveArm(wAxis);
-    if (controller.getRawButton(4)){
-      myArm.Intake();
-    }else if (controller.getRawButton(5)){
-      myArm.Outtake();
+    if(controller.getRawButtonPressed(1)){
+      myArm.switchArm();
     }
-
+    if (controller.getRawButton(5)){
+      System.out.println("Intake");
+      myArm.Intake();
+    }else if (controller.getRawButton(6)){
+      System.out.println("Outtake");
+      myArm.Outtake();
+    }else{
+      myArm.Stoptake();
+    }
+/*
     if(controller.getRawButton(2)){ // Auto Balance
       zAxis = 0;
       xAxis = 0;
@@ -220,7 +227,7 @@ public class Robot extends TimedRobot {
       autoTestDistance = 10;
       distanceOffset = cornerBL.getDriveEncoderPosition();
       currentDistance = cornerBL.getDriveEncoderPosition();
-    }
+    } */
 
     if(autoTest && (Math.abs(currentDistance-distanceOffset) <= autoTestDistance) && !controller.getRawButton(4)){
       zAxis = 0;
