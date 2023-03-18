@@ -8,6 +8,7 @@ import java.util.Random;
 
 import org.opencv.core.Mat;
 
+import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.sensors.CANCoder;
 import com.kauailabs.navx.frc.AHRS;
 //For SparkMax Support add this online vendor library: 
@@ -183,6 +184,7 @@ public class Robot extends TimedRobot {
     cornerFR.setEncoder();
     cornerBL.setEncoder();
     cornerBR.setEncoder();
+    myArm.ShortArmMotor.set(ControlMode.PercentOutput, 0.06);
   }
    public boolean autoTest = false;
    public double autoTestDistance;
@@ -201,6 +203,7 @@ public class Robot extends TimedRobot {
     if (Math.abs(yAxis) < DEADBAND) yAxis = 0;
     if (Math.abs(zAxis) < DEADBAND) zAxis = 0;
     if (Math.abs(wAxis) < DEADBAND) wAxis = 0;
+    zAxis = zAxis*0.5;
 
     myArm.moveArm(wAxis);
     if(controller.getRawButtonPressed(1)){
@@ -270,7 +273,7 @@ public class Robot extends TimedRobot {
     }
 
     //navX
-    if(!navX.isCalibrating() && controller.getRawButton(1)){
+    if(controller.getRawButton(2)){
       navXYawOffset = navX.getYaw();
       navXRollOffset = navX.getPitch();
     }
