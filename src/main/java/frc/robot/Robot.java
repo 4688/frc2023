@@ -8,6 +8,7 @@ import java.util.Random;
 
 import org.opencv.core.Mat;
 
+import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.sensors.CANCoder;
 import com.kauailabs.navx.frc.AHRS;
 //For SparkMax Support add this online vendor library: 
@@ -30,6 +31,7 @@ public class Robot extends TimedRobot {
   double xAxis;
   double yAxis;
   double zAxis;
+  double wAxis;
   static double DEADBAND = 0.1;
 
   // navX
@@ -51,6 +53,7 @@ public class Robot extends TimedRobot {
   SwervCorner cornerFR = new SwervCorner(2, 1, 9, 1, -1, 207.421875, 1);
   SwervCorner cornerBL = new SwervCorner(7, 8, 11, -1, 1, 289.86328125, -1);
   SwervCorner cornerBR = new SwervCorner(4, 3, 10, -1, -1, 91.2304688, 1);
+  Arm myArm = new Arm();
   private RobotContainer m_robotContainer;
 
   // public double getDegrees(double x, double y, double z, double zvecX, double zvecY) {
@@ -181,6 +184,7 @@ public class Robot extends TimedRobot {
     cornerFR.setEncoder();
     cornerBL.setEncoder();
     cornerBR.setEncoder();
+    myArm.ShortArmMotor.set(ControlMode.PercentOutput, 0.06);
   }
    public boolean autoTest = false;
    public double autoTestDistance;
@@ -192,12 +196,29 @@ public class Robot extends TimedRobot {
     xAxis = controller.getRawAxis(0);
     yAxis = controller.getRawAxis(1) * -1;
     zAxis = controller.getRawAxis(4);
+    wAxis = controller.getRawAxis(3) - controller.getRawAxis(2);
 
     // Deadband
     if (Math.abs(xAxis) < DEADBAND) xAxis = 0;
     if (Math.abs(yAxis) < DEADBAND) yAxis = 0;
     if (Math.abs(zAxis) < DEADBAND) zAxis = 0;
+    if (Math.abs(wAxis) < DEADBAND) wAxis = 0;
+    zAxis = zAxis*0.5;
 
+    myArm.moveArm(wAxis);
+    if(controller.getRawButtonPressed(1)){
+      myArm.switchArm();
+    }
+    if (controller.getRawButton(5)){
+      System.out.println("Intake");
+      myArm.Intake();
+    }else if (controller.getRawButton(6)){
+      System.out.println("Outtake");
+      myArm.Outtake();
+    }else{
+      myArm.Stoptake();
+    }
+/*
     if(controller.getRawButton(2)){ // Auto Balance
       zAxis = 0;
       xAxis = 0;
@@ -209,7 +230,7 @@ public class Robot extends TimedRobot {
       autoTestDistance = 10;
       distanceOffset = cornerBL.getDriveEncoderPosition();
       currentDistance = cornerBL.getDriveEncoderPosition();
-    }
+    } */
 
     if(autoTest && (Math.abs(currentDistance-distanceOffset) <= autoTestDistance) && !controller.getRawButton(4)){
       zAxis = 0;
@@ -252,7 +273,7 @@ public class Robot extends TimedRobot {
     }
 
     //navX
-    if(!navX.isCalibrating() && controller.getRawButton(1)){
+    if(controller.getRawButton(2)){
       navXYawOffset = navX.getYaw();
       navXRollOffset = navX.getPitch();
     }
