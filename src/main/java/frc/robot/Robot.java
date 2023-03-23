@@ -170,6 +170,7 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousPeriodic() {
+
   }
 
   @Override
@@ -184,12 +185,13 @@ public class Robot extends TimedRobot {
     cornerFR.setEncoder();
     cornerBL.setEncoder();
     cornerBR.setEncoder();
-    myArm.ShortArmMotor.set(ControlMode.PercentOutput, 0.06);
+    //myArm.ShortArmMotor.set(ControlMode.PercentOutput, 0.06);
   }
    public boolean autoTest = false;
    public double autoTestDistance;
    public double currentDistance;
    public double distanceOffset;
+   public double rev = 0.08;
   @Override
   public void teleopPeriodic() {
     // Drive Code
@@ -256,10 +258,13 @@ public class Robot extends TimedRobot {
       cornerBR.goTo(cornerBR.driveAngle);
 
       // Set Drive Speed
-      cornerFL.driveSpeed(getSpeed(xAxis, yAxis, zAxis, cornerFL));
-      cornerFR.driveSpeed(getSpeed(xAxis, yAxis, zAxis, cornerFR));
-      cornerBL.driveSpeed(getSpeed(xAxis, yAxis, zAxis, cornerBL));
-      cornerBR.driveSpeed(getSpeed(xAxis, yAxis, zAxis, cornerBR));
+      cornerFL.driveSpeed(getSpeed(xAxis, yAxis, zAxis, cornerFL) * rev);
+      cornerFR.driveSpeed(getSpeed(xAxis, yAxis, zAxis, cornerFR)* rev);
+      cornerBL.driveSpeed(getSpeed(xAxis, yAxis, zAxis, cornerBL)* rev);
+      cornerBR.driveSpeed(getSpeed(xAxis, yAxis, zAxis, cornerBR)* rev);
+      if (rev < 1){
+        rev = rev + 0.02;
+      }
     } else{
       cornerFL.stopRotation();
       cornerFR.stopRotation();
@@ -270,6 +275,7 @@ public class Robot extends TimedRobot {
       cornerFR.driveSpeed(0);
       cornerBL.driveSpeed(0);
       cornerBR.driveSpeed(0);
+      rev = 0.08;
     }
 
     //navX
