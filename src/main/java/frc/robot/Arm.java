@@ -4,7 +4,6 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 
 import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.Encoder;
 
 public class Arm {
     VictorSPX LongArmMotor;
@@ -15,7 +14,6 @@ public class Arm {
     DigitalInput Bswitchlong;
     DigitalInput Fswitchshort;
     DigitalInput Bswitchshort;
-    //Encoder Armcoder;
     boolean LongArm;
 
     public Arm() {
@@ -27,7 +25,6 @@ public class Arm {
         Bswitchlong= new DigitalInput(9);
         Fswitchshort= new DigitalInput(2);
         Bswitchshort= new DigitalInput(1);
-        //Armcoder= new Encoder(1, 0);//A?????????
         LongArm = true;
     }
 
@@ -44,9 +41,9 @@ public class Arm {
                 LongArmMotor.set(ControlMode.PercentOutput, a);
             }else{
                 if(Fswitchlong.get()){
-                    LongArmMotor.set(ControlMode.PercentOutput, 0);
+                    LongArmMotor.set(ControlMode.PercentOutput, -0.06);
                 }else{
-                    LongArmMotor.set(ControlMode.PercentOutput, 0);
+                    LongArmMotor.set(ControlMode.PercentOutput, 0.04);
                 }
                     
             }
@@ -56,7 +53,7 @@ public class Arm {
             }else if(a < 0 && Bswitchshort.get()){
                 ShortArmMotor.set(ControlMode.PercentOutput, a);
             }else{
-                ShortArmMotor.set(ControlMode.PercentOutput, 0);
+                ShortArmMotor.set(ControlMode.PercentOutput, 0.06);
             }
         }
     }

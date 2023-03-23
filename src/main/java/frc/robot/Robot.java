@@ -185,7 +185,6 @@ public class Robot extends TimedRobot {
     cornerFR.setEncoder();
     cornerBL.setEncoder();
     cornerBR.setEncoder();
-    //myArm.ShortArmMotor.set(ControlMode.PercentOutput, 0.06);
   }
    public boolean autoTest = false;
    public double autoTestDistance;

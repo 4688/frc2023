@@ -1,5 +1,4 @@
 package frc.robot;
-
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.VictorSPXControlMode;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
@@ -10,15 +9,16 @@ import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.networktables.*;
 
 public class Macros extends Robot {
-    public boolean TurnTo(double deg, SwervCorner FL,SwervCorner FR, SwervCorner BL, SwervCorner BR, AHRS navX) {
+    public void turnto(double degree, SwervCorner cornerFL, SwervCorner cornerFR, SwervCorner cornerBL,
+            SwervCorner cornerBR, AHRS navX) {
 
         double yaw = navX.getYaw();
-        if (yaw != deg) {
+        if (yaw != degree) {
             double xAxis = 0;
             double yAxis = 0;
-            double navXYawAngle = deg;
-            double clockwise = (yaw + deg) % 360;
-            double anticlockwise = (yaw - deg) % 360;
+            double navXYawAngle = degree;
+            double clockwise = (yaw + degree) % 360;
+            double anticlockwise = (yaw - degree) % 360;
             double zAxis = 0.25;
             if (clockwise > anticlockwise) {
                 zAxis = zAxis * -1;
@@ -42,7 +42,6 @@ public class Macros extends Robot {
             cornerFR.driveSpeed(getSpeed(xAxis, yAxis, zAxis, cornerFR));
             cornerBL.driveSpeed(getSpeed(xAxis, yAxis, zAxis, cornerBL));
             cornerBR.driveSpeed(getSpeed(xAxis, yAxis, zAxis, cornerBR));
-            return false;
         }
 
         else {
@@ -55,40 +54,63 @@ public class Macros extends Robot {
             cornerFR.driveSpeed(0);
             cornerBL.driveSpeed(0);
             cornerBR.driveSpeed(0);
-            return true;
         }
-        
     }
-    public double flip180(SwervCorner FL,SwervCorner FR, SwervCorner BL, SwervCorner BR, AHRS navX){
-        double yaw = navX.getYaw();
-        double deg = 180 ; 
-        deg=(yaw-180)%360;
-        return deg;
-    }  
-    
 
-    
+    public double flip180(double degree, SwervCorner cornerFL, SwervCorner cornerFR, SwervCorner cornerBL,
+            SwervCorner cornerBR, AHRS navX) {
+        double yaw = navX.getYaw();
+        if ((yaw > 270) || (yaw < 90)) {
+            return 180;
+        } else {
+            return 0;
+        }
+
+    }
     public void armMed(VictorSPX LongArmMotor,DigitalInput Fswitchlong,DigitalInput Bswitchlong,DigitalInput Fswitchshort,DigitalInput Bswitchshort,Encoder Armcoder){
-        if(Armcoder.getDistance()<=1) {
+        while(Armcoder.getDistance()<1) {
             LongArmMotor.set(ControlMode.PercentOutput, 0.25);
         }
-        else if(Armcoder.getDistance()>=1) {
-            LongArmMotor.set(ControlMode.PercentOutput, -0.25);
-        }
-        else {LongArmMotor.set(ControlMode.PercentOutput, 0.06);} 
+        LongArmMotor.set(ControlMode.PercentOutput, 0.06); 
     }
     public void armHigh(VictorSPX LongArmMotor,DigitalInput Fswitchlong,DigitalInput Bswitchlong,DigitalInput Fswitchshort,DigitalInput Bswitchshort,Encoder Armcoder){
-        if (Armcoder.getDistance()<2) {
+        while(Armcoder.getDistance()<2) {
             LongArmMotor.set(ControlMode.PercentOutput, 0.25);
         }
-        else if (Armcoder.getDistance()>2) {
-            LongArmMotor.set(ControlMode.PercentOutput, 0.25);
+        LongArmMotor.set(ControlMode.PercentOutput, 0.06); 
+    }
+    public void AprilTags(double degree, SwervCorner cornerFL, SwervCorner cornerFR, SwervCorner cornerBL,SwervCorner cornerBR, AHRS navX) {
+        double myVal = NetworkTableInstance.getDefault().getTable("limelight").getEntry("tid").getDouble(0);
+        double zAxis =  NetworkTableInstance.getDefault().getTable("limelight").getEntry("camerapose_targetspace").getDouble(0);
+
+        if (myVal != 1 || myVal != 2|| myVal != 3 || myVal != 4 || myVal != 5 || myVal != 6 || myVal != 7 ||myVal != 8) {
+            flip180(kDefaultPeriod, cornerFL, cornerFR, cornerBL, cornerBR, navX);
+            if (zAxis > 1) {
+                cornerFL.driveSpeed(0.25);
+                cornerFR.driveSpeed(0.25);
+                cornerBL.driveSpeed(0.25);
+                cornerBR.driveSpeed(0.25);
+            } else {
+                cornerFL.driveSpeed(0);
+                cornerFR.driveSpeed(0);
+                cornerBL.driveSpeed(0);
+                cornerBR.driveSpeed(0);
+            }
         }
-        else {LongArmMotor.set(ControlMode.PercentOutput, 0.06);}
+        else { 
+            if (zAxis < 1) {
+                cornerFL.driveSpeed(0.25);
+                cornerFR.driveSpeed(0.25);
+                cornerBL.driveSpeed(0.25);
+                cornerBR.driveSpeed(0.25);
+            } else {
+                cornerFL.driveSpeed(0);
+                cornerFR.driveSpeed(0);
+                cornerBL.driveSpeed(0);
+                cornerBR.driveSpeed(0);
+            }
+
+
+        }
     }
-    }
-    
-
-
-
-
+}
