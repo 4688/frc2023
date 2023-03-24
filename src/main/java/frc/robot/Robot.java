@@ -197,7 +197,7 @@ public class Robot extends TimedRobot {
     xAxis = controller.getRawAxis(0);
     yAxis = controller.getRawAxis(1) * -1;
     zAxis = controller.getRawAxis(4);
-    wAxis = controller.getRawAxis(3) - controller.getRawAxis(2);
+    wAxis = controller.getRawAxis(2) - controller.getRawAxis(3);
 
     // Deadband
     if (Math.abs(xAxis) < DEADBAND) xAxis = 0;
@@ -219,7 +219,7 @@ public class Robot extends TimedRobot {
     }else{
       myArm.Stoptake();
     }
-/*
+
     if(controller.getRawButton(2)){ // Auto Balance
       zAxis = 0;
       xAxis = 0;
@@ -231,7 +231,7 @@ public class Robot extends TimedRobot {
       autoTestDistance = 10;
       distanceOffset = cornerBL.getDriveEncoderPosition();
       currentDistance = cornerBL.getDriveEncoderPosition();
-    } */
+    } 
 
     if(autoTest && (Math.abs(currentDistance-distanceOffset) <= autoTestDistance) && !controller.getRawButton(4)){
       zAxis = 0;
@@ -261,9 +261,12 @@ public class Robot extends TimedRobot {
       cornerFR.driveSpeed(getSpeed(xAxis, yAxis, zAxis, cornerFR)* rev);
       cornerBL.driveSpeed(getSpeed(xAxis, yAxis, zAxis, cornerBL)* rev);
       cornerBR.driveSpeed(getSpeed(xAxis, yAxis, zAxis, cornerBR)* rev);
+      
+      // Rev Adjustment
       if (rev < 1){
         rev = rev + 0.02;
       }
+
     } else{
       cornerFL.stopRotation();
       cornerFR.stopRotation();
@@ -284,7 +287,6 @@ public class Robot extends TimedRobot {
     }
     navXYawAngle = navX.getYaw() - navXYawOffset;
     navXRollAngle = navX.getRoll() - navXRollOffset;
-
   }
 
   @Override

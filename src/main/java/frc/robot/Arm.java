@@ -15,6 +15,7 @@ public class Arm {
     DigitalInput Fswitchshort;
     DigitalInput Bswitchshort;
     boolean LongArm;
+    boolean switchup;
 
     public Arm() {
         LongArmMotor= new VictorSPX(13);
@@ -26,10 +27,12 @@ public class Arm {
         Fswitchshort= new DigitalInput(2);
         Bswitchshort= new DigitalInput(1);
         LongArm = true;
+        switchup = true;
     }
 
     public void switchArm(){
         LongArm = !LongArm;
+        switchup = true;
     }
 
     public void moveArm(double a){
@@ -37,7 +40,7 @@ public class Arm {
         if(LongArm){
             if(a > 0 && Fswitchlong.get()){
                 LongArmMotor.set(ControlMode.PercentOutput, a);
-            }else if(a < 0 && Bswitchlong.get()){
+            }else if(a < 0 && Bswitchlong.get() && !Fswitchshort.get()){
                 LongArmMotor.set(ControlMode.PercentOutput, a);
             }else{
                 if(Fswitchlong.get()){
@@ -47,13 +50,32 @@ public class Arm {
                 }
                     
             }
+            if(switchup){
+                if (Fswitchshort.get()){
+                    ShortArmMotor.set(ControlMode.PercentOutput, 0.25);
+                }else{
+                    ShortArmMotor.set(ControlMode.PercentOutput, 0.04);
+                    switchup = false;
+                }
+                
+            }
         }else{
             if(a > 0 && Fswitchshort.get()){
                 ShortArmMotor.set(ControlMode.PercentOutput, a);
-            }else if(a < 0 && Bswitchshort.get()){
+            }else if(a < 0 && Bswitchshort.get() && !Fswitchlong.get()){
                 ShortArmMotor.set(ControlMode.PercentOutput, a);
             }else{
-                ShortArmMotor.set(ControlMode.PercentOutput, 0.06);
+                ShortArmMotor.set(ControlMode.PercentOutput, 0.0);
+            }
+            if(switchup){
+                if (Fswitchlong.get()){
+                    LongArmMotor.set(ControlMode.PercentOutput, 0.25);
+                }else{
+                    LongArmMotor.set(ControlMode.PercentOutput, 0.06);
+
+                    switchup = false;
+                }
+                
             }
         }
     }
