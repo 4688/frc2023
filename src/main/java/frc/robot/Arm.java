@@ -1,9 +1,12 @@
 package frc.robot;
 
+import java.beans.Encoder;
+
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.DutyCycleEncoder;
 
 public class Arm {
     VictorSPX LongArmMotor;
@@ -14,8 +17,13 @@ public class Arm {
     DigitalInput Bswitchlong;
     DigitalInput Fswitchshort;
     DigitalInput Bswitchshort;
+    DutyCycleEncoder Armcoder;
     boolean LongArm;
     boolean switchup;
+    double armRangeDeadzone = 0.02;
+    double armMedVal = 0.2465;
+    double armHighVal = 0.428;
+    double armEncoderOffset;
 
     public Arm() {
         LongArmMotor= new VictorSPX(13);
@@ -26,8 +34,44 @@ public class Arm {
         Bswitchlong= new DigitalInput(9);
         Fswitchshort= new DigitalInput(2);
         Bswitchshort= new DigitalInput(1);
+        Armcoder = new DutyCycleEncoder(6);
         LongArm = true;
         switchup = true;
+        armEncoderOffset = Armcoder.getDistance();
+    }
+
+    public double getArmEncoderReading(){
+        return Armcoder.getDistance()-armEncoderOffset;
+    }
+
+    public void resetArmEncoderOffset(){
+        armEncoderOffset = Armcoder.getDistance();
+    }
+
+    public boolean armMed(){
+        double armSpeed = armMedVal-(Armcoder.getDistance()-armEncoderOffset);
+        if(armSpeed > 0.10) armSpeed = 0.10; 
+        if(armSpeed < -0.10) armSpeed = -0.10;
+        if((Armcoder.getDistance()-armEncoderOffset)<armMedVal) {
+            LongArmMotor.set(ControlMode.PercentOutput, -(armSpeed+0.05));
+            return false;
+        } else if ((Armcoder.getDistance()-armEncoderOffset)>armMedVal+armRangeDeadzone){
+            LongArmMotor.set(ControlMode.PercentOutput, -(armSpeed-0.05));
+            return false;
+        }else{
+            LongArmMotor.set(ControlMode.PercentOutput, 0); 
+            return true;
+        }
+    }
+
+    public boolean armHigh(){
+        if(Bswitchlong.get()) {
+            LongArmMotor.set(ControlMode.PercentOutput, -0.25);
+            return false;
+        }else{
+            LongArmMotor.set(ControlMode.PercentOutput, -0.06); 
+            return true;
+        }
     }
 
     public void switchArm(){
@@ -72,7 +116,6 @@ public class Arm {
                     LongArmMotor.set(ControlMode.PercentOutput, 0.25);
                 }else{
                     LongArmMotor.set(ControlMode.PercentOutput, 0.06);
-
                     switchup = false;
                 }
                 
@@ -80,19 +123,19 @@ public class Arm {
         }
     }
 
-    public void Intake(){
+    public void Intake(int intakeSwitch){
         if(LongArm){
-            LongIntake.set(ControlMode.PercentOutput, -1);
+            LongIntake.set(ControlMode.PercentOutput, -1*intakeSwitch);
         }else{
-            ShortIntake.set(ControlMode.PercentOutput, -1);
+            ShortIntake.set(ControlMode.PercentOutput, -1*intakeSwitch);
         }
     }
 
-    public void Outtake(){
+    public void Outtake(int intakeSwitch){
         if(LongArm){
-            LongIntake.set(ControlMode.PercentOutput, 1);
+            LongIntake.set(ControlMode.PercentOutput, 1*intakeSwitch);
         }else{
-            ShortIntake.set(ControlMode.PercentOutput,    1);
+            ShortIntake.set(ControlMode.PercentOutput, 1*intakeSwitch);
         }
     }
 
