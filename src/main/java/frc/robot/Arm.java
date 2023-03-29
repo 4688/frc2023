@@ -21,7 +21,7 @@ public class Arm {
     boolean LongArm;
     boolean switchup;
     double armRangeDeadzone = 0.02;
-    double armMedVal = 0.2465;
+    double armMedVal = 0.2565;
     double armHighVal = 0.428;
     double armEncoderOffset;
 
@@ -35,7 +35,7 @@ public class Arm {
         Fswitchshort= new DigitalInput(2);
         Bswitchshort= new DigitalInput(1);
         Armcoder = new DutyCycleEncoder(6);
-        LongArm = true;
+        LongArm = false;
         switchup = true;
         armEncoderOffset = Armcoder.getDistance();
     }
@@ -98,7 +98,7 @@ public class Arm {
                 if (Fswitchshort.get()){
                     ShortArmMotor.set(ControlMode.PercentOutput, 0.25);
                 }else{
-                    ShortArmMotor.set(ControlMode.PercentOutput, 0.04);
+                    ShortArmMotor.set(ControlMode.PercentOutput, 0.05);
                     switchup = false;
                 }
                 

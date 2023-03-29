@@ -74,9 +74,9 @@ public class Robot extends TimedRobot {
 //*********************************************************************** */
 
   SwervCorner cornerFL = new SwervCorner(5, 6, 12, 1 , 1, 9.4921875, -1);
-  SwervCorner cornerFR = new SwervCorner(2, 1, 9, 1, -1, 207.421875, 1);
+  SwervCorner cornerFR = new SwervCorner(2, 1, 9, 1, -1, 201.121875, 1);
   SwervCorner cornerBL = new SwervCorner(7, 8, 11, -1, 1, 289.86328125, -1);
-  SwervCorner cornerBR = new SwervCorner(4, 3, 10, -1, -1, 91.2304688, 1);
+  SwervCorner cornerBR = new SwervCorner(4, 3, 10, -1, -1, 5.18547, 1);
   Arm myArm = new Arm();
   private RobotContainer m_robotContainer;
 
@@ -99,13 +99,12 @@ public class Robot extends TimedRobot {
     yAxis = 0;
     double clockwise = (navXYawAngle + degree) % 360;
     double anticlockwise = (navXYawAngle - degree) % 360;
-    double zAxis = 0.25;
-    if (navXYawAngle != degree) {
+    if (navXYawAngle < degree - 1 || navXYawAngle > degree + 1 ) {
         if (clockwise > anticlockwise) {
-            zAxis = zAxis * -1;
+            zAxis = anticlockwise * -0.1;
         }
         if (clockwise < anticlockwise) {
-            zAxis = zAxis * 1;
+            zAxis = clockwise/4 * 0.1;
         }
         return true;
     }else{
@@ -176,10 +175,10 @@ public class Robot extends TimedRobot {
             hyp = Math.sqrt(Math.pow(vx, 2)+Math.pow(vy, 2));
         }
         if(!robotDriveTo(hyp, Math.cos(Math.toRadians(thetaF)), Math.sin(Math.toRadians(thetaF))) && !myArm.armHigh()){
-            return false;
+          return false;
         }else{
-            rotateBeforeCalc = true;
-            return true;
+          rotateBeforeCalc = true;
+          return true;
         }
     }
   }
@@ -189,18 +188,18 @@ public class Robot extends TimedRobot {
     if ( Math.abs(navXYawAngle)>90) {
       robotTurnTo(180);
     } else {
-      robotTurnTo(90);
+      robotTurnTo(0);
     }
   }
 
   public void autoBalance(){
-    if(Math.abs(navXYawAngle)>=Math.abs(autoBalanceMaxAngle)){
-      autoBalanceMaxAngle = navXYawAngle;
-    }else if(Math.abs(autoBalanceMaxAngle)-Math.abs(navXYawAngle)>1){
-      navXYawAngle = 0; //Weird fix
+    if(Math.abs(navXRollAngle)>=Math.abs(autoBalanceMaxAngle)){
+      autoBalanceMaxAngle = navXRollAngle;
+    }else if(Math.abs(autoBalanceMaxAngle)-Math.abs(navXRollAngle)>8){
+      navXRollAngle = 0; //Weird fix
     }
-    yAxis = navXYawAngle/110;
-    if(autoBalanceMaxAngle * navXYawAngle < 0) autoBalanceMaxAngle = 0;
+    yAxis = navXRollAngle/20;
+    if(autoBalanceMaxAngle * navXRollAngle < 0) autoBalanceMaxAngle = 0;
   }
 
   public double getMaxMag(double x, double y, double z){
@@ -293,7 +292,7 @@ public class Robot extends TimedRobot {
       
       if (step == 2){
         // Drive forwards
-        if(!robotDriveTo(10,0,1)) step +=1;
+        if(!robotDriveTo(2,0,1)) step +=1;
       }
   
       if (step == 3){
@@ -330,7 +329,7 @@ public class Robot extends TimedRobot {
 
       // Driveforwards
       if(step == 3){
-        if(!robotDriveTo(10, 0, 0.5)) step += 1;
+        if(!robotDriveTo(2, 0, 0.5)) step += 1;
       }
     }
 
@@ -388,7 +387,21 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("navXYawAngle: ", navXYawAngle);
     SmartDashboard.putNumber("ArmEncoder: ", myArm.getArmEncoderReading());
     SmartDashboard.putBoolean("Intake", true);
-    SmartDashboard.putString("Arm: ", "Front");
+
+    //Arm
+    SmartDashboard.putString("ArmLevel: ", "Front");
+    SmartDashboard.putBoolean("Fswitchlong: ", myArm.Fswitchlong.get());
+    SmartDashboard.putBoolean("Bswitchlong: ", myArm.Bswitchlong.get());
+    SmartDashboard.putBoolean("Fswitchshort: ", myArm.Fswitchshort.get());
+    SmartDashboard.putBoolean("Bswitchshort: ", myArm.Bswitchshort.get());
+
+    SmartDashboard.putNumber("POV: ", controller.getPOV());
+    SmartDashboard.putBoolean("Flip180", controller.getRawButton(8));
+    SmartDashboard.putNumber("FLE", cornerFL.getEncoderPosition());
+    SmartDashboard.putNumber("FRE", cornerFR.getEncoderPosition());
+    SmartDashboard.putNumber("BLE", cornerBL.getEncoderPosition());
+    SmartDashboard.putNumber("BRE", cornerBR.getEncoderPosition());
+    SmartDashboard.putNumber("navXRollAngle", navXRollAngle);
 
     if (m_autonomousCommand != null) {
       m_autonomousCommand.cancel();
@@ -415,8 +428,22 @@ public class Robot extends TimedRobot {
     SmartDashboard.putNumber("navXYawAngle: ", navXYawAngle);
     SmartDashboard.putNumber("ArmEncoder: ", myArm.getArmEncoderReading());
     SmartDashboard.putBoolean("Intake", test);
-    if(myArm.LongArm) SmartDashboard.putString("Arm: ", "Front");
-    else SmartDashboard.putString("Arm: ", "Back");
+
+    //Arm
+    if(myArm.LongArm) SmartDashboard.putString("ArmLevel: ", "Front");
+    else SmartDashboard.putString("ArmLevel: ", "Back");
+    SmartDashboard.putBoolean("Fswitchlong: ", myArm.Fswitchlong.get());
+    SmartDashboard.putBoolean("Bswitchlong: ", myArm.Bswitchlong.get());
+    SmartDashboard.putBoolean("Fswitchshort: ", myArm.Fswitchshort.get());
+    SmartDashboard.putBoolean("Bswitchshort: ", myArm.Bswitchshort.get());
+
+    SmartDashboard.putNumber("POV: ", controller.getPOV());
+    SmartDashboard.putBoolean("Flip180", controller.getRawButton(8));
+    SmartDashboard.putNumber("FLE", cornerFL.getEncoderPosition());
+    SmartDashboard.putNumber("FRE", cornerFR.getEncoderPosition());
+    SmartDashboard.putNumber("BLE", cornerBL.getEncoderPosition());
+    SmartDashboard.putNumber("BRE", cornerBR.getEncoderPosition());
+    SmartDashboard.putNumber("navXRollAngle", navXRollAngle);
     
     // Drive Code
     xAxis = controller.getRawAxis(0);
@@ -447,16 +474,18 @@ public class Robot extends TimedRobot {
     if(controller.getRawButtonPressed(4)) intakeSwitch *= -1;
 
     //Macros 
-    if(controller.getPOV() > 180 && controller.getPOV() != 0) leftHumanPlayerAuto();
-    if(controller.getPOV() < 180 && controller.getPOV() != 0) rightHumanPlayerAuto();
+    if(controller.getPOV() > 180 && controller.getPOV() != -1) leftHumanPlayerAuto();
+    if(controller.getPOV() < 180 && controller.getPOV() != -1) rightHumanPlayerAuto();
     if(controller.getRawButton(8)) flip180();
     if(controller.getRawButton(7)) resetnavX();
     if(controller.getRawButton(2)) autoBalance();
     if(controller.getRawButton(3)) myArm.armMed();
 
     //Limelight
-    llDistance = NetworkTableInstance.getDefault().getTable("limelight").getEntry("camerapose_targetspace").getDouble(0);
-    llDistance *= 3.281; // Unit coneversion meters -> feet
+    double[] llArray = NetworkTableInstance.getDefault().getTable("limelight").getEntry("camerapose_targetspace").getDoubleArray(new double[6]);
+    llDistance = 0;
+    //llDistance = llArray[2];
+    llDistance *= -3.281; // Unit coneversion meters -> feet
     llAngle = NetworkTableInstance.getDefault().getTable("limelight").getEntry("tx").getDouble(0);
     
 
