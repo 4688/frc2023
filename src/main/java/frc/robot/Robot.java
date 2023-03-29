@@ -16,6 +16,7 @@ import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
@@ -53,7 +54,6 @@ public class Robot extends TimedRobot {
   // Auto
   Timer timer = new Timer();
   boolean waitingTimer = false;
-  double autoSetting;
   double autoBalanceMaxAngle = 0;
 
   // Limelight
@@ -132,8 +132,11 @@ public class Robot extends TimedRobot {
     }
   }
 
-  public void resetnavX(){
-    navXYawOffset = navX.getYaw();
+  public void resetnavX(double d){
+    navXYawOffset = (navX.getYaw() + d)%360;
+    if (navXYawOffset > 180){
+      navXYawOffset = -(360 - navXYawOffset);
+    }
     navXPitchOffset = navX.getPitch();
     navXRollOffset = navX.getRoll();
     myArm.resetArmEncoderOffset();
@@ -259,6 +262,11 @@ public class Robot extends TimedRobot {
   @Override
   public void disabledExit() {}
 
+  DigitalInput switch1 = new DigitalInput(3);
+  DigitalInput switch2 = new DigitalInput(4);
+  DigitalInput switch3 = new DigitalInput(5);
+  int autoSelect = 0;
+
   @Override
   public void autonomousInit() {
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
@@ -266,6 +274,16 @@ public class Robot extends TimedRobot {
     if (m_autonomousCommand != null) {
       m_autonomousCommand.schedule();
     }
+    if(switch1.get()){
+      autoSelect += 1;
+    }
+    if(switch2.get()){
+      autoSelect += 2;
+    }
+    if(switch3.get()){
+      autoSelect += 4;
+    }
+
   }
 
   public boolean autoDrive = false;
@@ -275,10 +293,9 @@ public class Robot extends TimedRobot {
   public double distanceOffset;
   @Override
   public void autonomousPeriodic() {
-    autoSetting = 0;
 
     // Auto Setting 1
-    if (autoSetting == 0){
+    if (autoSelect == 0){
 
       if (step == 1){
         // Place cube
@@ -310,7 +327,7 @@ public class Robot extends TimedRobot {
       }
     }
 
-    if(autoSetting == 1){
+    if(autoSelect == 1){
       // Move Arm All the way out
       if(step == 1){
         if(!myArm.Bswitchlong.get()){
@@ -477,7 +494,7 @@ public class Robot extends TimedRobot {
     if(controller.getPOV() > 180 && controller.getPOV() != -1) leftHumanPlayerAuto();
     if(controller.getPOV() < 180 && controller.getPOV() != -1) rightHumanPlayerAuto();
     if(controller.getRawButton(8)) flip180();
-    if(controller.getRawButton(7)) resetnavX();
+    if(controller.getRawButton(7)) resetnavX(0);
     if(controller.getRawButton(2)) autoBalance();
     if(controller.getRawButton(3)) myArm.armMed();
 
