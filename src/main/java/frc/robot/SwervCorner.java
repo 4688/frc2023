@@ -11,7 +11,6 @@ public class SwervCorner {
     private final CANSparkMax turnMotor;
     private final CANCoder encoder;
     private final RelativeEncoder driveEncoder;
-    private static double PI = 3.141596;
 
     
     public boolean isForward;

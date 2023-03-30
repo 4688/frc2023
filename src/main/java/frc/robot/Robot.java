@@ -138,7 +138,7 @@ public class Robot extends TimedRobot {
     }
   }
 
-  public boolean robotDriveTo(double distance, double x, double y) {
+  public boolean robotDriveTo(double distance, double xAutoDrive, double yAutoDrive) {
     if (autoDrive == false) {
       autoDrive = true;
       autoDriveDistance = distance;
@@ -148,8 +148,8 @@ public class Robot extends TimedRobot {
 
     if (autoDrive && (Math.abs(currentDistance - distanceOffset) <= autoDriveDistance)) {
       zAxis = 0;
-      xAxis = x * (1 - Math.abs(currentDistance - distanceOffset) / autoDriveDistance);
-      yAxis = y * (1 - Math.abs(currentDistance - distanceOffset) / autoDriveDistance);
+      xAxis = xAutoDrive * (1 - Math.abs(currentDistance - distanceOffset) / autoDriveDistance);
+      yAxis = yAutoDrive * (1 - Math.abs(currentDistance - distanceOffset) / autoDriveDistance);
       currentDistance = cornerBL.getDriveEncoderPosition();
       return true;
     } else {
@@ -313,12 +313,11 @@ public class Robot extends TimedRobot {
   public void autonomousPeriodic() {
     // Auto Setting 0 ---- Chet this one is unchanged!!!
     if (autoSelect == 0) {
-
       if (step == 1) {
         // Place cube
         intakeSwitch = 1;
         myArm.Outtake(intakeSwitch);
-        if (!robotWait(1)) {
+        if (!robotWait(0.5)) {
           step += 1;
           myArm.Stoptake();
           resetnavX(0);
@@ -327,20 +326,17 @@ public class Robot extends TimedRobot {
 
       if (step == 2) {
         // Drive forwards
-        if (!robotDriveTo(10, 0, 1))
-          step += 1;
+        if (!robotDriveTo(10, 0, 1)) step += 1;
       }
 
       if (step == 3) {
-        // Wait 1 second
-        if (!robotWait(1))
-          step += 1;
+        // Wait 0.5 seconds
+        if (!robotWait(0.5)) step += 1;
       }
 
       if (step == 4) {
         // Drive Backwards
-        if (!robotDriveTo(5, 0, -1))
-          step += 1;
+        if (!robotDriveTo(5,0, -1)) step += 1;
       }
 
       if (step == 5) {
@@ -384,7 +380,7 @@ public class Robot extends TimedRobot {
       if (step == 1) {
         if (myArm.armBack()) {
           step += 1;
-          resetnavX(0);
+          resetnavX(180);
         }
       }
 
@@ -427,7 +423,7 @@ public class Robot extends TimedRobot {
       if (step == 1) {
         if (myArm.armBack()) {
           step += 1;
-          resetnavX(0);
+          resetnavX(180);
         }
       }
 
@@ -471,7 +467,7 @@ public class Robot extends TimedRobot {
         if (myArm.armHigh()) {
           step += 1;
           myArm.switchArm();
-          resetnavX(0);
+          resetnavX(180);
         }
       }
 
@@ -507,7 +503,7 @@ public class Robot extends TimedRobot {
         if (myArm.armHigh()) {
           step += 1;
           myArm.switchArm();
-          resetnavX(0);
+          resetnavX(180);
         }
       }
 
