@@ -1,7 +1,5 @@
 package frc.robot;
 
-import java.beans.Encoder;
-
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 
@@ -50,8 +48,8 @@ public class Arm {
 
     public boolean armMed(){
         double armSpeed = armMedVal-(Armcoder.getDistance()-armEncoderOffset);
-        if(armSpeed > 0.10) armSpeed = 0.10; 
-        if(armSpeed < -0.10) armSpeed = -0.10;
+        if(armSpeed > 0.25) armSpeed = 0.25; 
+        if(armSpeed < -0.25) armSpeed = -0.25;
         if((Armcoder.getDistance()-armEncoderOffset)<armMedVal) {
             LongArmMotor.set(ControlMode.PercentOutput, -(armSpeed+0.05));
             return false;
@@ -70,6 +68,16 @@ public class Arm {
             return false;
         }else{
             LongArmMotor.set(ControlMode.PercentOutput, -0.06); 
+            return true;
+        }
+    }
+
+    public boolean armBack(){
+        if(Fswitchlong.get()) {
+            LongArmMotor.set(ControlMode.PercentOutput, 0.25);
+            return false;
+        }else{
+            LongArmMotor.set(ControlMode.PercentOutput, 0.06); 
             return true;
         }
     }

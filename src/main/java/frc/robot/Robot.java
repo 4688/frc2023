@@ -3,18 +3,8 @@
 // the WPILib BSD license file in the root directory of this project.
 
 package frc.robot;
-
-import java.util.Random;
-
-import org.opencv.core.Mat;
-
-import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.sensors.CANCoder;
 import com.kauailabs.navx.frc.AHRS;
-//For SparkMax Support add this online vendor library: 
-//https://software-metadata.revrobotics.com/REVLib-2023.json
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+
 
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Joystick;
@@ -23,7 +13,6 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import pabeles.concurrency.IntOperatorTask.Max;
 import edu.wpi.first.networktables.*;
 
 public class Robot extends TimedRobot {
@@ -97,8 +86,8 @@ public class Robot extends TimedRobot {
   public boolean robotTurnTo(double degree) {
     xAxis = 0;
     yAxis = 0;
-    double clockwise = (navXYawAngle + degree) % 360;
-    double anticlockwise = (navXYawAngle - degree) % 360;
+    double clockwise = ((navXYawAngle%360) + degree) % 360;
+    double anticlockwise = ((navXYawAngle%360) - degree) % 360;
     if (navXYawAngle < degree - 1 || navXYawAngle > degree + 1 ) {
         if (clockwise > anticlockwise) {
             zAxis = anticlockwise * -0.1;
@@ -128,6 +117,9 @@ public class Robot extends TimedRobot {
         return true;
       } else {
         autoDrive = false;
+        zAxis = 0;
+        xAxis = 0;
+        yAxis = 0;
         return false;
     }
   }
@@ -269,21 +261,19 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousInit() {
-    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 
-    if (m_autonomousCommand != null) {
-      m_autonomousCommand.schedule();
-    }
-    if(switch1.get()){
+    
+    if(!switch1.get()){
       autoSelect += 1;
     }
-    if(switch2.get()){
+    if(!switch2.get()){
       autoSelect += 2;
     }
-    if(switch3.get()){
+    if(!switch3.get()){
       autoSelect += 4;
     }
 
+    SmartDashboard.putNumber("AutoSelect", autoSelect);
   }
 
   public boolean autoDrive = false;
@@ -293,7 +283,6 @@ public class Robot extends TimedRobot {
   public double distanceOffset;
   @Override
   public void autonomousPeriodic() {
-
     // Auto Setting 1
     if (autoSelect == 0){
 
@@ -304,12 +293,13 @@ public class Robot extends TimedRobot {
         if(!robotWait(1)){
           step += 1;
           myArm.Stoptake();
+          resetnavX(0);
         }
       }
       
       if (step == 2){
         // Drive forwards
-        if(!robotDriveTo(2,0,1)) step +=1;
+        if(!robotDriveTo(10,0,1)) step +=1;
       }
   
       if (step == 3){
@@ -328,27 +318,100 @@ public class Robot extends TimedRobot {
     }
 
     if(autoSelect == 1){
-      // Move Arm All the way out
-      if(step == 1){
-        if(!myArm.Bswitchlong.get()){
-          myArm.armHigh();
-        }else{
-          step += 1;
+          if(step == 1){
+            if(myArm.armHigh()){
+              step += 1;
+              myArm.switchArm();
+              resetnavX(0);
+            }
+          }
+          // Place cone
+          if(step == 2){
+            myArm.Outtake(1);
+            if(!robotWait(0.5)){
+              step += 1;
+              myArm.Stoptake();
+            } 
+          }
+          if(step == 3){
+            if(!robotDriveTo(10,0,-1)) step +=1;
+          }
+          if(step == 4){
+            if(!robotDriveTo(5,0,1)) step +=1;
+          }
+      }
+    
+    if(autoSelect == 2){
+    // Move Arm to medium distance
+        if(step == 1){
+          if(myArm.armBack()){
+            step += 1;
+            resetnavX(0);
+          }
+        }
+        if(step == 2){
+          if(myArm.armMed()){
+            step += 1;
+            myArm.switchArm();
+          }
+        }
+        // Place cone
+        if(step == 3){
+          myArm.Outtake(1);
+          if(!robotWait(0.5)){
+            step += 1;
+            myArm.Stoptake();
+          } 
+        }
+        if(step == 4){
+          if(!robotDriveTo(10,0,-1)) step +=1;
+        }
+        if(step == 5){
+          if(!robotDriveTo(5,0,1)) step +=1;
+        }
+    }
+
+    if(autoSelect == 3){
+      // Move Arm to medium distance
+          if(step == 1){
+            if(myArm.armBack()){
+              step += 1;
+              resetnavX(0);
+            }
+          }
+          if(step == 2){
+            if(myArm.armMed()){
+              step += 1;
+              myArm.switchArm();
+            }
+          }
+          // Place cone
+          if(step == 3){
+            myArm.Outtake(-1);
+            if(!robotWait(0.5)){
+              step += 1;
+              myArm.Stoptake();
+            } 
+          }
+          if(step == 4){
+            if(!robotDriveTo(10,0,-1)) step +=1;
+          }
+          if(step == 5){
+            if(!robotDriveTo(5,0,1)) step +=1;
+          }
+      }
+
+      if(autoSelect == 4){
+        if (step == 1){
+          // Wait 1 second
+          if(!robotDriveTo(5,0,1)) step += 1;
+        }
+    
+        if (step == 2){
+          // Drive Backwards
+          if(!robotDriveTo(5,0,-1)) step +=1;
         }
       }
-
-      // Place cone
-      if(step == 2){
-        intakeSwitch = -1;
-        myArm.Outtake(intakeSwitch);
-        if(!robotWait(3)) step += 1;
-      }
-
-      // Driveforwards
-      if(step == 3){
-        if(!robotDriveTo(2, 0, 0.5)) step += 1;
-      }
-    }
 
 
     
@@ -396,6 +459,9 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousExit() {}
+
+  double [] myarray = {0,0,0,0,0,0};
+  
 
   @Override
   public void teleopInit() {
@@ -499,9 +565,8 @@ public class Robot extends TimedRobot {
     if(controller.getRawButton(3)) myArm.armMed();
 
     //Limelight
-    double[] llArray = NetworkTableInstance.getDefault().getTable("limelight").getEntry("camerapose_targetspace").getDoubleArray(new double[6]);
-    llDistance = 0;
-    //llDistance = llArray[2];
+    double[] llArray = NetworkTableInstance.getDefault().getTable("limelight").getEntry("camerapose_targetspace").getDoubleArray(myarray);
+    llDistance = llArray[2];
     llDistance *= -3.281; // Unit coneversion meters -> feet
     llAngle = NetworkTableInstance.getDefault().getTable("limelight").getEntry("tx").getDouble(0);
     
