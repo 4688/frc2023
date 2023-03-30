@@ -234,6 +234,10 @@ public class Robot extends TimedRobot {
       autoBalanceMaxAngle = 0;
   }
 
+  public void autoBalanceManual(){
+    yAxis = navXRollAngle / 100;
+  }
+
   public double getMaxMag(double x, double y, double z) {
     return Math.max(Math.max(cornerFL.driveMagnitude, cornerFR.driveMagnitude),
         Math.max(cornerBL.driveMagnitude, cornerBR.driveMagnitude));
@@ -683,7 +687,7 @@ public class Robot extends TimedRobot {
     if (controller.getRawButton(7))
       resetnavX(0);
     if (controller.getRawButton(2))
-      autoBalance();
+      autoBalanceManual();
     if (controller.getRawButton(3))
       myArm.armMed();
 
