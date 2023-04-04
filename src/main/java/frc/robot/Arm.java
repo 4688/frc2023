@@ -22,6 +22,7 @@ public class Arm {
     double armMedVal = 0.2565;
     double armHighVal = 0.428;
     double armEncoderOffset;
+    boolean useEncoderValues;
 
     public Arm() {
         LongArmMotor= new VictorSPX(13);
@@ -36,6 +37,7 @@ public class Arm {
         LongArm = false;
         switchup = true;
         armEncoderOffset = Armcoder.getDistance();
+        useEncoderValues = false;
     }
 
     public double getArmEncoderReading(){
@@ -83,6 +85,7 @@ public class Arm {
     }
 
     public void switchArm(){
+        Stoptake();
         LongArm = !LongArm;
         switchup = true;
     }

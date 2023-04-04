@@ -93,6 +93,11 @@ public class Robot extends TimedRobot {
   public double autoDriveDistance;
   public double currentDistance;
   public double distanceOffset;
+  public boolean autoDriveStep = true;
+  public int flipCount = 1;
+  public double prevAx = 0;
+  boolean robotIntake = false;
+  boolean robotOutake = false;
 
   //Rev Init
   public double rev = 0.08;
@@ -148,8 +153,8 @@ public class Robot extends TimedRobot {
 
     if (autoDrive && (Math.abs(currentDistance - distanceOffset) <= autoDriveDistance)) {
       zAxis = 0;
-      xAxis = xAutoDrive * (1 - Math.abs(currentDistance - distanceOffset) / autoDriveDistance);
-      yAxis = yAutoDrive * (1 - Math.abs(currentDistance - distanceOffset) / autoDriveDistance);
+      xAxis = xAutoDrive * 0.4;
+      yAxis = yAutoDrive * 0.4;
       currentDistance = cornerBL.getDriveEncoderPosition();
       return true;
     } else {
@@ -223,19 +228,36 @@ public class Robot extends TimedRobot {
     }
   }
 
-  public void autoBalance() {
-    if (Math.abs(navXRollAngle) >= Math.abs(autoBalanceMaxAngle)) {
-      autoBalanceMaxAngle = navXRollAngle;
-    } else if (Math.abs(autoBalanceMaxAngle) - Math.abs(navXRollAngle) > 8) {
-      navXRollAngle = 0; // Weird fix
+  public boolean autoBalance() {
+    if(Math.abs(navXRollAngle) > 6){
+      yAxis = -0.5;
+      return false;
+    }else{
+      zAxis = 1; // lock wheels 
+      return true;
     }
-    yAxis = navXRollAngle / 20;
-    if (autoBalanceMaxAngle * navXRollAngle < 0)
-      autoBalanceMaxAngle = 0;
   }
 
   public void autoBalanceManual(){
-    yAxis = navXRollAngle / 100;
+    if(autoDriveStep){
+      if(robotWait(1/flipCount)){
+        if(Math.abs(navXRollAngle)> 1){
+          yAxis = -(navXRollAngle / (45 + flipCount * 10));
+        }
+      }else{
+        autoDriveStep = false;
+      }
+    }else{
+      if(robotWait(1)){
+        //wait
+      }else{
+        autoDriveStep = true;
+      }
+    }
+    if(navXRollAngle * prevAx < 0){
+      flipCount += 2;
+      prevAx = navXRollAngle;
+    }
   }
 
   public double getMaxMag(double x, double y, double z) {
@@ -315,36 +337,38 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousPeriodic() {
-    // Auto Setting 0 ---- Chet this one is unchanged!!!
+    SmartDashboard.putNumber("Step", step);
+
+    //############################
+    //Auto 0 Putting a cone high and drive straight forward
+    //############################
+    
     if (autoSelect == 0) {
+      //Raising arm to top
       if (step == 1) {
-        // Place cube
-        intakeSwitch = 1;
-        myArm.Outtake(intakeSwitch);
-        if (!robotWait(0.5)) {
+        if (myArm.armHigh()) {
           step += 1;
-          myArm.Stoptake();
-          resetnavX(0);
+          myArm.switchArm();
+          resetnavX(180);
         }
       }
 
+      // Place cone
       if (step == 2) {
-        // Drive forwards
-        if (!robotDriveTo(10, 0, 1)) step += 1;
+        myArm.Outtake(1);
+        if (!robotWait(0.5)) {
+          step += 1;
+          myArm.Stoptake();
+        }
       }
 
-      if (step == 3) {
-        // Wait 0.5 seconds
-        if (!robotWait(0.5)) step += 1;
-      }
-
-      if (step == 4) {
-        // Drive Backwards
-        if (!robotDriveTo(5,0, -1)) step += 1;
-      }
-
-      if (step == 5) {
-        autoBalance();
+      //Go Forward
+      if(step == 3){
+        if (!robotDriveTo(15, 0, 1)){
+          step += 1;
+        }else{
+          myArm.armBack();
+        }
       }
     }
 
@@ -365,14 +389,11 @@ public class Robot extends TimedRobot {
 
       //Drive forward
       if (step == 2) {
-        if (!robotDriveTo(10, 0, -1))
+        if (!robotDriveTo(15, 0, 1)){
           step += 1;
-      }
-
-      //Drive Backward
-      if (step == 3) {
-        if (!robotDriveTo(5, 0, 1))
-          step += 1;
+        }else{
+          myArm.armBack();
+        }
       }
     }
     //############################
@@ -406,15 +427,12 @@ public class Robot extends TimedRobot {
       }
 
       //Go Forward
-      if (step == 4) {
-        if (!robotDriveTo(10, 0, -1))
+      if(step == 4){
+        if (!robotDriveTo(15, 0, 1)){
           step += 1;
-      }
-
-      //Go Backward
-      if (step == 5) {
-        if (!robotDriveTo(5, 0, 1))
-          step += 1;
+        }else{
+          myArm.armBack();
+        }
       }
     }
 
@@ -449,20 +467,18 @@ public class Robot extends TimedRobot {
       }
 
       //Go Forward
-      if (step == 4) {
-        if (!robotDriveTo(10, 0, -1))
+      if(step == 4){
+        if (!robotDriveTo(15, 0, 1)){
           step += 1;
+        }else{
+          myArm.armBack();
+        }
       }
 
-      //Go Backward
-      if (step == 5) {
-        if (!robotDriveTo(5, 0, 1))
-          step += 1;
-      }
     }
 
     //############################
-    //Auto 4: Putting a cone high
+    //Auto 4: Putting a cone high and auto balance
     //############################
 
     if (autoSelect == 4) {
@@ -486,14 +502,39 @@ public class Robot extends TimedRobot {
 
       //Moving Forward
       if (step == 3) {
-        if (!robotDriveTo(10, 0, -1))
+        if (!robotDriveTo(15, 0, 1)){
           step += 1;
+        }else{
+          myArm.armBack();
+        }
+      }
+
+
+      // Wait 1 second
+      if(step == 4){
+        if(!robotWait(1)){
+          step += 1;
+        }
       }
 
       //Moving Backward
-      if (step == 4) {
-        if (!robotDriveTo(5, 0, 1))
+      if (step == 5) {
+        if (!robotDriveTo(9.5, 0, -1))
           step += 1;
+      }
+
+
+      // Tip charge station
+      if (step == 6){
+        if(!autoBalance())
+          step += 1;
+      }
+
+      // Move forwards 
+      if (step == 7) {
+        if (!robotDriveTo(1, 0, 1)){
+          step += 1;
+        }
       }
     }
 
@@ -520,16 +561,13 @@ public class Robot extends TimedRobot {
         }
       }
 
-      //Moving Forward
-      if (step == 3) {
-        if (!robotDriveTo(10, 0, -1))
+      //Go Forward
+      if(step == 3){
+        if (!robotDriveTo(15, 0, 1)){
           step += 1;
-      }
-
-      //Moving Backward
-      if (step == 4) {
-        if (!robotDriveTo(5, 0, 1))
-          step += 1;
+        }else{
+          myArm.armBack();
+        }
       }
     }
 
@@ -576,6 +614,11 @@ public class Robot extends TimedRobot {
       cornerBR.driveSpeed(0);
       rev = 0.08;
     }
+
+    // navX
+    navXYawAngle = navX.getYaw() - navXYawOffset;
+    navXRollAngle = navX.getRoll() - navXRollOffset;
+    navXPitchAngle = navX.getPitch() - navXPitchOffset;
   }
 
   @Override
@@ -661,13 +704,27 @@ public class Robot extends TimedRobot {
       wAxis = 0;
     zAxis = zAxis * 0.5;
 
+    if(controller.getRawButtonPressed(5)){
+      robotIntake = true;
+      robotOutake = false;
+    }
+    if(controller.getRawButtonPressed(6)){
+      robotOutake = true;
+      robotIntake = false;
+    }
+    if(controller.getRawButton(6) && controller.getRawButton(5)){
+      robotIntake = false;
+      robotOutake = false;
+    }
+
+
     myArm.moveArm(wAxis);
     if (controller.getRawButtonPressed(1)) {
       myArm.switchArm();
     }
-    if (controller.getRawButton(5)) {
+    if (robotIntake) {
       myArm.Intake(intakeSwitch);
-    } else if (controller.getRawButton(6)) {
+    } else if (robotOutake) {
       myArm.Outtake(intakeSwitch);
     } else {
       myArm.Stoptake();
@@ -682,8 +739,6 @@ public class Robot extends TimedRobot {
       leftHumanPlayerAuto();
     if (controller.getPOV() < 180 && controller.getPOV() != -1)
       rightHumanPlayerAuto();
-    if (controller.getRawButton(8))
-      flip180();
     if (controller.getRawButton(7))
       resetnavX(0);
     if (controller.getRawButton(2))
@@ -697,6 +752,13 @@ public class Robot extends TimedRobot {
     llDistance = llArray[2];
     llDistance *= -3.281; // Unit coneversion meters -> feet
     llAngle = NetworkTableInstance.getDefault().getTable("limelight").getEntry("tx").getDouble(0);
+
+    // Encoder Limit Switch Fix
+    if (controller.getRawButtonPressed(8)){
+      myArm.useEncoderValues = true;
+    }
+
+
 
     if (xAxis != 0 || yAxis != 0 || zAxis != 0) {
       // Update Swerve Corner Vals
