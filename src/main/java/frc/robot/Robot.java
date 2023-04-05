@@ -56,6 +56,7 @@ public class Robot extends TimedRobot {
   double navXRollAngle = 0;
   double navXPitchOffset = 0;
   double navXPitchAngle = 0;
+  double navXRate = 0;
 
   // Auto
   Timer timer = new Timer();
@@ -147,15 +148,17 @@ public class Robot extends TimedRobot {
     if (autoDrive == false) {
       autoDrive = true;
       autoDriveDistance = distance;
-      distanceOffset = cornerBL.getDriveEncoderPosition();
-      currentDistance = cornerBL.getDriveEncoderPosition();
+      cornerFR.resetEncoder();
+      cornerFL.resetEncoder();
+      cornerBR.resetEncoder();
+      cornerBL.resetEncoder();
     }
 
-    if (autoDrive && (Math.abs(currentDistance - distanceOffset) <= autoDriveDistance)) {
+    if (autoDrive && (autoDriveDistance > 0)) {
       zAxis = 0;
       xAxis = xAutoDrive * 0.4;
       yAxis = yAutoDrive * 0.4;
-      currentDistance = cornerBL.getDriveEncoderPosition();
+      currentDistance = currentDistance - Math.min(cornerBL.getDriveEncoderPosition(), Math.min(cornerBR.getDriveEncoderPosition(), Math.min(cornerFR.getDriveEncoderPosition(),  cornerFL.getDriveEncoderPosition())));
       return true;
     } else {
       autoDrive = false;
@@ -238,7 +241,21 @@ public class Robot extends TimedRobot {
     }
   }
 
-  public void autoBalanceManual(){
+  public double angleThresh = 3;
+  public double speedGain = 0.5;
+
+  public boolean autoBalanceManual(){
+    if (Math.abs(navXRollAngle) < angleThresh){
+      yAxis = 0;
+      return true;
+    }
+    navXRate = navX.getRawGyroY();
+    yAxis = speedGain * navXRollAngle * navXRate;
+    return false;
+  }
+
+  /*
+   *   public void autoBalanceManual(){
     if(autoDriveStep){
       if(robotWait(1/flipCount)){
         if(Math.abs(navXRollAngle)> 1){
@@ -259,6 +276,8 @@ public class Robot extends TimedRobot {
       prevAx = navXRollAngle;
     }
   }
+   */
+  
 
   public double getMaxMag(double x, double y, double z) {
     return Math.max(Math.max(cornerFL.driveMagnitude, cornerFR.driveMagnitude),

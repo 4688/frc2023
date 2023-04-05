@@ -23,6 +23,7 @@ public class SwervCorner {
     public double driveAngle;
 
     private double maxDriveSpeed = 1;
+    private double zeroNum = 0;
 
     public SwervCorner(int driveID, int turnID, int encoderID, int zvecX, int zvecY, double rotateOffset, double isNatForward){
         driveMotor = new CANSparkMax(driveID, MotorType.kBrushless);
@@ -62,11 +63,15 @@ public class SwervCorner {
     }
 
     public double getDriveEncoderPosition(){
-        return (driveEncoder.getPosition()/-6.6);
+        return ((driveEncoder.getPosition()- zeroNum)/-6.6);
     }
 
     public double getEncoderPosition(){
         return encoder.getAbsolutePosition();
+    }
+
+    public void resetEncoder(){
+        zeroNum = driveEncoder.getPosition();
     }
 
     public void goTo(double deg){
